@@ -21,22 +21,22 @@ app.get("/api/hello", (req, res) => {
 
 // Route pour les en-têtes
 app.get("/api/whoami", (req, res) => {
-  // IP : Prendre la première adresse de x-forwarded-for ou socket.remoteAddress
-  const ipaddress = (
-    req.headers["x-forwarded-for"] ||
-    req.socket.remoteAddress ||
-    ""
-  )
-    .split(",")[0]
-    .trim();
+  // IP : Prioriser x-forwarded-for, nettoyer la valeur
+  const ipaddress = req.headers["x-forwarded-for"]
+    ? req.headers["x-forwarded-for"].split(",")[0].trim()
+    : req.ip || req.socket.remoteAddress || "unknown";
 
-  // Langue : Gérer les cas où l'en-tête est absent
+  // Langue : Première valeur de Accept-Language
   const language = req.headers["accept-language"]
-    ? req.headers["accept-language"].split(",")[0]
-    : "unknown";
+    ? req.headers["accept-language"].split(",")[0].trim()
+    : "en-US"; // Valeur par défaut raisonnable
 
-  // User-Agent : Gérer les cas où l'en-tête est absent
+  // Software : User-Agent complet
   const software = req.headers["user-agent"] || "unknown";
+
+  // Logs pour déboguer
+  console.log("Request headers:", req.headers);
+  console.log("Response:", { ipaddress, language, software });
 
   // Réponse JSON
   res.json({ ipaddress, language, software });
