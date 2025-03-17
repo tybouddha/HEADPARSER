@@ -1,45 +1,48 @@
-// index.js
-// where your node app starts
-
-// init project
 require("dotenv").config();
-var express = require("express");
-var app = express();
+const express = require("express");
+const app = express();
 
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC
-var cors = require("cors");
-app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
+// Enable CORS
+const cors = require("cors");
+app.use(cors({ optionsSuccessStatus: 200 }));
 
-// http://expressjs.com/en/starter/static-files.html
+// Serve static files (optionnel, si vous avez un dossier public)
 app.use(express.static("public"));
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
-  res.sendFile(__dirname + "/views/index.html");
+// Route principale (optionnel)
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/views/index.html"); // Assurez-vous que ce fichier existe
 });
 
-// your first API endpoint...
-app.get("/api/hello", function (req, res) {
+// Test endpoint
+app.get("/api/hello", (req, res) => {
   res.json({ greeting: "hello API" });
 });
 
-// Route pour récupérer les en-têtes
+// Route pour les en-têtes
 app.get("/api/whoami", (req, res) => {
-  // Adresse IP
-  const ipaddress =
-    req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  // IP : Prendre la première adresse de x-forwarded-for ou socket.remoteAddress
+  const ipaddress = (
+    req.headers["x-forwarded-for"] ||
+    req.socket.remoteAddress ||
+    ""
+  )
+    .split(",")[0]
+    .trim();
 
-  // Langue préférée (on prend la première langue de la liste)
-  const language = req.headers["accept-language"].split(",")[0];
+  // Langue : Gérer les cas où l'en-tête est absent
+  const language = req.headers["accept-language"]
+    ? req.headers["accept-language"].split(",")[0]
+    : "unknown";
 
-  // User-Agent
-  const software = req.headers["user-agent"];
+  // User-Agent : Gérer les cas où l'en-tête est absent
+  const software = req.headers["user-agent"] || "unknown";
 
   // Réponse JSON
   res.json({ ipaddress, language, software });
 });
-// listen for requests :)
-var listener = app.listen(process.env.PORT || 3000, function () {
+
+// Lancer le serveur
+const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
