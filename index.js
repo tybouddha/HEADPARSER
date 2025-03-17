@@ -24,14 +24,21 @@ app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
 
+// Route pour récupérer les en-têtes
 app.get("/api/whoami", (req, res) => {
-  const ipaddress = req.ip; // Adresse IP de l'utilisateur
-  const language = req.headers["accept-language"]; // Langue préférée
-  const software = req.headers["user-agent"]; // User-Agent
+  // Adresse IP
+  const ipaddress =
+    req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
+  // Langue préférée (on prend la première langue de la liste)
+  const language = req.headers["accept-language"].split(",")[0];
+
+  // User-Agent
+  const software = req.headers["user-agent"];
+
+  // Réponse JSON
   res.json({ ipaddress, language, software });
 });
-
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {
   console.log("Your app is listening on port " + listener.address().port);
